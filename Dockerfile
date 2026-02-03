@@ -8,9 +8,7 @@ RUN npm ci --only=production && npm cache clean --force
 
 COPY . .
 
-RUN addgroup --gid 1001 nodejs && \
-    adduser --uid 1001 --ingroup nodejs node && \
-    chown -R node:nodejs /app
+RUN chown -R node:node /app
 USER node
 
 EXPOSE 3000
