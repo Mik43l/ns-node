@@ -16,7 +16,7 @@ const app = express()
 
 // ✅ OR: Restrict to specific origin (recommended for production)
 app.use(cors({
-    origin: 'http://localhost:4200', // Angular dev server
+    origin: process.env.APPWRITE_APP_ENDPOINT, // Angular dev server
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Appwrite-Project'],
     credentials: true
