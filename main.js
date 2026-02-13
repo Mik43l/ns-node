@@ -9,6 +9,8 @@ const client = new sdk.Client()
     .setKey(process.env.APPWRITE_API_KEY); // Your secret API key
 
 const users = new sdk.Users(client);
+const databases = new sdk.Databases(client);
+const messaging = new sdk.Messaging(client);
 
 const app = express()
 
@@ -50,6 +52,66 @@ app.post('/create-target', async (req, res) =>
 
         res.json(result)
     } else res.json({ message: "Target alredy exists" })
+})
+
+app.post('/create-email', async (req, res) =>
+{
+    const { documentId } = req.body
+    const document = await databases.getDocument(
+        process.env.APPWRITE_DATABASE_ID, // databaseId
+        process.env.APPWRITE_COLLECTION_ID, // collectionId
+        documentId
+    );
+
+    const subject = `Appuntamento - ${document.title} del ${new Date(document.start).toLocaleDateString()}`
+
+    const customerTemplate = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.4;">
+    <p style="margin: 0; padding: 20px 0;">Gentile ${document.customerName ? document.customerName : 'cliente'},</p>
+    <p style="margin: 0;">l'appuntamento in oggetto è stato creato/modificato.</p>
+    <p style="margin: 0;">👉 Visualizza i nuovi dettagli sulla piattaforma</p>
+    <p style="margin: 0; padding: 20px 0;">Grazie,<br>NS Installazioni Service</p>
+</body>
+</html>`;
+
+    const NSTemplate = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.4;">
+    <p style="margin: 0; padding: 20px 0;">Gentile NS Installazioni,</p>
+    <p style="margin: 0;">l'appuntamento in oggetto è stato creato/modificato.</p>
+    <p style="margin: 0;">👉 Visualizza i nuovi dettagli sulla piattaforma</p>
+    <p style="margin: 0; padding: 20px 0;">Grazie,<br>NS Installazioni Service</p>
+</body>
+</html>`;
+
+    // EMAIL CLIENTE
+    await messaging.createEmail(
+        sdk.ID.unique(), // messageId
+        subject,
+        customerTemplate,
+        [],
+        [document.customerId],
+        [], [], [], [], false, true
+    );
+
+    // EMAIL FORNITORE  
+    await messaging.createEmail(
+        sdk.ID.unique(),
+        subject,
+        NSTemplate,
+        [],
+        [process.env.APPWRITE_ADMIN_ID],
+        [], [], [], [], false, true
+    );
+
+    res.json({ success: true, sentTo: [document.customerEmail, process.env.APPWRITE_ADMIN_EMAIL] })
 })
 
 app.post('/update-user-status', async (req, res) =>
