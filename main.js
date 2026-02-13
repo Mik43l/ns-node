@@ -63,7 +63,7 @@ app.post('/create-email', async (req, res) =>
         documentId
     );
 
-    const subject = `Appuntamento - ${document.title} del ${new Date(document.start).toLocaleDateString()}`
+    const subject = `Appuntamento - ${document.title} del ${new Date(document.start).toLocaleDateString('it-IT')}`
 
     const customerTemplate = `<!DOCTYPE html>
 <html>
