@@ -54,9 +54,9 @@ app.post('/create-target', async (req, res) =>
     } else res.json({ message: "Target alredy exists" })
 })
 
-app.post('/create-email', async (req, res) =>
+app.post('/send-email', async (req, res) =>
 {
-    const { documentId } = req.body
+    const { documentId, mode } = req.body
     const document = await databases.getDocument(
         process.env.APPWRITE_DATABASE_ID, // databaseId
         process.env.APPWRITE_COLLECTION_ID, // collectionId
@@ -72,7 +72,8 @@ app.post('/create-email', async (req, res) =>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.4;">
     <p style="margin: 0; padding: 20px 0;">Gentile ${document.customerName ? document.customerName : 'cliente'},</p>
-    <p style="margin: 0;">l'appuntamento in oggetto è stato creato/modificato.</p>
+    <p style="margin: 0;">l'appuntamento in oggetto è stato ${mode === 'create' ? 'CREATO' : 'AGGIORNATO'}.</p>
+    <p style="margin: 0;">👉 Lo stato dell'appuntamento è ${getStatus(document.status)}</p>
     <p style="margin: 0;">👉 Visualizza i nuovi dettagli sulla piattaforma</p>
     <p style="margin: 0; padding: 20px 0;">Grazie,<br>NS Installazioni Service</p>
 </body>
@@ -85,7 +86,8 @@ app.post('/create-email', async (req, res) =>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.4;">
     <p style="margin: 0; padding: 20px 0;">Gentile NS Installazioni,</p>
-    <p style="margin: 0;">l'appuntamento in oggetto è stato creato/modificato.</p>
+    <p style="margin: 0;">l'appuntamento in oggetto è stato ${mode === 'create' ? 'CREATO' : 'AGGIORNATO'}.</p>
+    <p style="margin: 0;">👉 Lo stato dell'appuntamento è ${getStatus(document.status)}</p>
     <p style="margin: 0;">👉 Visualizza i nuovi dettagli sulla piattaforma</p>
     <p style="margin: 0; padding: 20px 0;">Grazie,<br>NS Installazioni Service</p>
 </body>
@@ -113,6 +115,23 @@ app.post('/create-email', async (req, res) =>
 
     res.json({ success: true, sentTo: [document.customerEmail, process.env.APPWRITE_ADMIN_EMAIL] })
 })
+
+function getStatus(status)
+{
+    switch (status)
+    {
+        case "PENDING":
+            return "IN ATTESA";
+        case "APPROVED":
+            return "APPROVATO";
+        case "REJECTED":
+            return "RIFIUTATO";
+        case "CANCELLED":
+            return "CANCELLATO";
+        default:
+            return "";
+    }
+}
 
 app.post('/update-user-status', async (req, res) =>
 {
